@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import itertools
 from scipy.interpolate import spline
 
+
 # Step 1
 def load_data(input_path, output_path):
     x = np.loadtxt(input_path)
@@ -200,4 +201,13 @@ x_smooth = np.linspace(min(minus_x), max(minus_x), 200)
 y_smooth = spline(minus_x, minus_y, x_smooth)
 plt.plot(x_smooth, y_smooth, "--", color="green")
 
+plt.show()
+data_sig = sorted(itertools.izip(*[x, sig_d]))
+sig_x, sig_y = list(itertools.izip(*data_sig))
+x_smooth = np.linspace(min(sig_x), max(sig_x), 200)
+y_smooth = spline(sig_x, sig_y, x_smooth)
+plt.plot(x_smooth, y_smooth)
+plt.title("Standard Deviation as a function of x")
+plt.xlabel("x")
+plt.ylabel("Standard Deviation")
 plt.show()
