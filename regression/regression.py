@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
+from scipy.interpolate import spline
 
 # Step 1
 def load_data(input_path, output_path):
@@ -10,8 +11,8 @@ def load_data(input_path, output_path):
 
 x, y = load_data("dataset1_inputs.txt", "dataset1_outputs.txt")
 
-# plt.plot(x, y, "x", color="green")
-# plt.show()
+plt.plot(x, y, "x", color="green")
+plt.show()
 
 # Step 2
 
@@ -56,12 +57,12 @@ for D in range(1, num_basis + 1):
     w = generate_w_mle(phi, y)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-# plt.plot(range(0, 20), mses)
-# plt.title("MSE as a Function of D with MLE Estimate")
-# plt.xlabel("D")
-# plt.ylabel("MSE")
-# plt.xlim(0, 21)
-# plt.show()
+plt.plot(range(0, 20), mses)
+plt.title("MSE as a Function of D with MLE Estimate")
+plt.xlabel("D")
+plt.ylabel("MSE")
+plt.xlim(0, 21)
+plt.show()
 
 
 # Step 3
@@ -81,12 +82,12 @@ for D in range(1, num_basis + 1):
     w = generate_w_map(phi, y, D)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-# plt.plot(range(0, 20), mses)
-# plt.title("MSE as a Function of D with MAP Estimate")
-# plt.xlabel("D")
-# plt.ylabel("MSE")
-# plt.xlim(0, 21)
-# plt.show()
+plt.plot(range(0, 20), mses)
+plt.title("MSE as a Function of D with MAP Estimate")
+plt.xlabel("D")
+plt.ylabel("MSE")
+plt.xlim(0, 21)
+plt.show()
 
 # Step 4
 
@@ -103,16 +104,20 @@ for D in range(1, num_basis + 1):
 
     data_mle = sorted(itertools.izip(*[x, pred_y_mle]))
     mle_x, mle_y = list(itertools.izip(*data_mle))
+    x_smooth = np.linspace(min(mle_x), max(mle_x), 200)
+    y_smooth = spline(mle_x, mle_y, x_smooth)
+    plt.plot(x_smooth, y_smooth, "-", label="MLE", color="red")
 
     data_map = sorted(itertools.izip(*[x, pred_y_map]))
     map_x, map_y = list(itertools.izip(*data_map))
+    x_smooth = np.linspace(min(map_x), max(map_x), 200)
+    y_smooth = spline(map_x, map_y, x_smooth)
+    plt.plot(x_smooth, y_smooth, "-", label="MAP", color="blue")
 
-    # plt.plot(x, y, "x", label="Data", color="green")
-    # plt.plot(mle_x, mle_y, "-", label="MLE", color="red")
-    # plt.plot(map_x, map_y, "-", label="MAP", color="blue")
-    # plt.title("D = {}".format(D))
-    # plt.legend()
-    # plt.show()
+    plt.plot(x, y, "x", label="Data", color="green")
+    plt.title("D = {}".format(D))
+    plt.legend()
+    plt.show()
 
 
 # Step 5
@@ -147,21 +152,52 @@ plt.show()
 # Step 6
 
 x, y = load_data("dataset2_inputs.txt", "dataset2_outputs.txt")
-# plt.plot(x, y, "x", color="green")
-# plt.show()
+plt.plot(x, y, "x", color="green")
+plt.show()
 
 
 # Step 7
 
-# tau = 1000
-# sigma = 1.5
-# d = 13
-# phi = generate_phi(x, d)
-# inv = (tau**2 * np.identity(d) + sigma**(-2)* np.dot(np.transpose(phi), phi))
-# cov_w = np.linalg.inv(inv)
-# mu_w = sigma**(-2) * np.dot(np.dot(cov_w, np.transpose(phi)), y)
-# mu_d = np.dot(np.transpose(mu_w), phi[d])
-# # sigma_d = sigma**2 + np.dot(np.dot(np.transpose(x), cov_w), x)
-#
-# plt.plot(mu_d)
-# plt.show()
+tau = 1000
+sigma = 1.5
+d = 13
+
+phi = generate_phi(d, x)
+ide = tau**(-2) * np.identity(d)
+sig = sigma**(-2) * np.dot(np.transpose(phi), phi)
+inv = np.add(ide, sig)
+cov_w = np.linalg.inv(inv)
+mu_w = sigma**(-2) * np.dot(np.dot(cov_w, np.transpose(phi)), y)
+
+mu_d = np.zeros(len(x))
+sig_d = np.zeros(len(x))
+plus_sig = np.zeros(len(x))
+minus_sig = np.zeros(len(x))
+
+for i in range(len(x)):
+    mu_d[i] = np.dot(np.transpose(mu_w), phi[i])
+    sig_d[i] = sigma**2 + np.dot(np.dot(np.transpose(phi[i]), cov_w), phi[i])
+    plus_sig[i] = mu_d[i] + sig_d[i]
+    minus_sig[i] = mu_d[i] - sig_d[i]
+
+plt.plot(x, y, "x", color="green")
+
+data_mu = sorted(itertools.izip(*[x, mu_d]))
+mu_x, mu_y = list(itertools.izip(*data_mu))
+x_smooth = np.linspace(min(mu_x), max(mu_x), 200)
+y_smooth = spline(mu_x, mu_y, x_smooth)
+plt.plot(x_smooth, y_smooth, "-", color="blue")
+
+data_plus = sorted(itertools.izip(*[x, plus_sig]))
+plus_x, plus_y = list(itertools.izip(*data_plus))
+x_smooth = np.linspace(min(plus_x), max(plus_x), 200)
+y_smooth = spline(plus_x, plus_y, x_smooth)
+plt.plot(x_smooth, y_smooth, "--", color="green")
+
+data_minus = sorted(itertools.izip(*[x, minus_sig]))
+minus_x, minus_y = list(itertools.izip(*data_minus))
+x_smooth = np.linspace(min(minus_x), max(minus_x), 200)
+y_smooth = spline(minus_x, minus_y, x_smooth)
+plt.plot(x_smooth, y_smooth, "--", color="green")
+
+plt.show()
