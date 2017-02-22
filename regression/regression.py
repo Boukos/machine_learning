@@ -12,8 +12,8 @@ def load_data(input_path, output_path):
 
 x, y = load_data("dataset1_inputs.txt", "dataset1_outputs.txt")
 
-plt.plot(x, y, "x", color="green")
-plt.show()
+# plt.plot(x, y, "x", color="green")
+# plt.show()
 
 # Step 2
 
@@ -58,12 +58,14 @@ for D in range(1, num_basis + 1):
     w = generate_w_mle(phi, y)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-plt.plot(range(0, 20), mses)
-plt.title("MSE as a Function of D with MLE Estimate")
-plt.xlabel("D")
-plt.ylabel("MSE")
-plt.xlim(0, 21)
-plt.show()
+print mses
+print np.argmin(mses) + 1
+# plt.plot(range(0, 21), np.concatenate(([None], mses)))
+# plt.title("MSE as a Function of D with MLE Estimate")
+# plt.xlabel("D")
+# plt.ylabel("MSE")
+# plt.xlim(0, 21)
+# plt.show()
 
 
 # Step 3
@@ -83,12 +85,14 @@ for D in range(1, num_basis + 1):
     w = generate_w_map(phi, y, D)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-plt.plot(range(0, 20), mses)
-plt.title("MSE as a Function of D with MAP Estimate")
-plt.xlabel("D")
-plt.ylabel("MSE")
-plt.xlim(0, 21)
-plt.show()
+print mses
+print np.argmin(mses) + 1
+# plt.plot(range(0, 21), np.concatenate(([None], mses)))
+# plt.title("MSE as a Function of D with MAP Estimate")
+# plt.xlabel("D")
+# plt.ylabel("MSE")
+# plt.xlim(0, 21)
+# plt.show()
 
 # Step 4
 
@@ -97,23 +101,22 @@ for D in range(1, num_basis + 1):
     phi = generate_phi(D, x)
     w_mle = generate_w_mle(phi, y)
     w_map = generate_w_map(phi, y, D)
-    pred_y_mle = np.zeros(len(y))
-    pred_y_map = np.zeros(len(y))
-    for i in range(len(y)):
-        pred_y_mle[i] = compute_polynomials(w_mle, x[i], D)
-        pred_y_map[i] = compute_polynomials(w_map, x[i], D)
 
-    data_mle = sorted(itertools.izip(*[x, pred_y_mle]))
+    x_new = np.linspace(min(x), max(x), 200)     # Create new x range for sampling more points
+
+    pred_y_mle = np.zeros(len(x_new))
+    pred_y_map = np.zeros(len(x_new))
+    for i in range(len(x_new)):
+        pred_y_mle[i] = compute_polynomials(w_mle, x_new[i], D)
+        pred_y_map[i] = compute_polynomials(w_map, x_new[i], D)
+
+    data_mle = sorted(itertools.izip(*[x_new, pred_y_mle]))
     mle_x, mle_y = list(itertools.izip(*data_mle))
-    x_smooth = np.linspace(min(mle_x), max(mle_x), 200)
-    y_smooth = spline(mle_x, mle_y, x_smooth)
-    plt.plot(x_smooth, y_smooth, "-", label="MLE", color="red")
+    plt.plot(mle_x, mle_y, "-", label="MLE", color="red")
 
-    data_map = sorted(itertools.izip(*[x, pred_y_map]))
+    data_map = sorted(itertools.izip(*[x_new, pred_y_map]))
     map_x, map_y = list(itertools.izip(*data_map))
-    x_smooth = np.linspace(min(map_x), max(map_x), 200)
-    y_smooth = spline(map_x, map_y, x_smooth)
-    plt.plot(x_smooth, y_smooth, "-", label="MAP", color="blue")
+    plt.plot(map_x, map_y, "-", label="MAP", color="blue")
 
     plt.plot(x, y, "x", label="Data", color="green")
     plt.title("D = {}".format(D))
@@ -129,6 +132,9 @@ avg = np.zeros(num_basis)
 for i in range(1, num_basis + 1):
     mses = np.zeros(10)
     for j in range(0, len(x), fold):
+        xy = np.random.permutation(zip(x, y))
+        x = xy[:, 0]
+        y = xy[:, 1]
 
         training = np.concatenate([x[0:j], x[j+fold : len(x)]])
         training_y = np.concatenate([y[0:j], y[j+fold: len(y)]])
