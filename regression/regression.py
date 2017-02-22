@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
-from scipy.interpolate import spline
 
 
 # Step 1
@@ -12,8 +11,8 @@ def load_data(input_path, output_path):
 
 x, y = load_data("dataset1_inputs.txt", "dataset1_outputs.txt")
 
-# plt.plot(x, y, "x", color="green")
-# plt.show()
+plt.plot(x, y, "x", color="green")
+plt.show()
 
 # Step 2
 
@@ -23,7 +22,7 @@ def poly(i, x):
 
 
 def generate_phi(D, x):
-    phi = [[0] * D for i in range(len(x))]  # initializing multidimensional list
+    phi = [[0] * D for i in range(len(x))]
     for i, j in enumerate(x):
         phi[i] = [poly(d, j) for d in range(1, D + 1)]
     return phi
@@ -60,12 +59,12 @@ for D in range(1, num_basis + 1):
 
 print mses
 print np.argmin(mses) + 1
-# plt.plot(range(0, 21), np.concatenate(([None], mses)))
-# plt.title("MSE as a Function of D with MLE Estimate")
-# plt.xlabel("D")
-# plt.ylabel("MSE")
-# plt.xlim(0, 21)
-# plt.show()
+plt.plot(range(0, 21), np.concatenate(([None], mses)))
+plt.title("MSE as a Function of D with MLE Estimate")
+plt.xlabel("D")
+plt.ylabel("MSE")
+plt.xlim(0, 21)
+plt.show()
 
 
 # Step 3
@@ -87,12 +86,12 @@ for D in range(1, num_basis + 1):
 
 print mses
 print np.argmin(mses) + 1
-# plt.plot(range(0, 21), np.concatenate(([None], mses)))
-# plt.title("MSE as a Function of D with MAP Estimate")
-# plt.xlabel("D")
-# plt.ylabel("MSE")
-# plt.xlim(0, 21)
-# plt.show()
+plt.plot(range(0, 21), np.concatenate(([None], mses)))
+plt.title("MSE as a Function of D with MAP Estimate")
+plt.xlabel("D")
+plt.ylabel("MSE")
+plt.xlim(0, 21)
+plt.show()
 
 # Step 4
 
@@ -176,43 +175,42 @@ inv = np.add(ide, sig)
 cov_w = np.linalg.inv(inv)
 mu_w = sigma**(-2) * np.dot(np.dot(cov_w, np.transpose(phi)), y)
 
-mu_d = np.zeros(len(x))
-sig_d = np.zeros(len(x))
-plus_sig = np.zeros(len(x))
-minus_sig = np.zeros(len(x))
+new_x = np.linspace(min(x), max(x), 200)
 
-for i in range(len(x)):
-    mu_d[i] = np.dot(np.transpose(mu_w), phi[i])
-    sig_d[i] = sigma**2 + np.dot(np.dot(np.transpose(phi[i]), cov_w), phi[i])
-    plus_sig[i] = mu_d[i] + sig_d[i]
-    minus_sig[i] = mu_d[i] - sig_d[i]
+mu_d = np.zeros(len(new_x))
+sig_d = np.zeros(len(new_x))
+plus_sig = np.zeros(len(new_x))
+minus_sig = np.zeros(len(new_x))
+
+for i in range(len(new_x)):
+
+    phi_x = [poly(D, new_x[i]) for D in range(1, d + 1)]
+
+    mu_d[i] = np.dot(np.transpose(mu_w), phi_x)
+    sig_d[i] = sigma**2 + np.dot(np.dot(np.transpose(phi_x), cov_w), phi_x)
+    plus_sig[i] = mu_d[i] + np.sqrt(sig_d[i])
+    minus_sig[i] = mu_d[i] - np.sqrt(sig_d[i])
 
 plt.plot(x, y, "x", color="green")
 
-data_mu = sorted(itertools.izip(*[x, mu_d]))
+data_mu = sorted(itertools.izip(*[new_x, mu_d]))
 mu_x, mu_y = list(itertools.izip(*data_mu))
-x_smooth = np.linspace(min(mu_x), max(mu_x), 200)
-y_smooth = spline(mu_x, mu_y, x_smooth)
-plt.plot(x_smooth, y_smooth, "-", color="blue")
+plt.plot(mu_x, mu_y, "-", color="blue")
 
-data_plus = sorted(itertools.izip(*[x, plus_sig]))
+data_plus = sorted(itertools.izip(*[new_x, plus_sig]))
 plus_x, plus_y = list(itertools.izip(*data_plus))
-x_smooth = np.linspace(min(plus_x), max(plus_x), 200)
-y_smooth = spline(plus_x, plus_y, x_smooth)
-plt.plot(x_smooth, y_smooth, "--", color="green")
+plt.plot(plus_x, plus_y, "--", color="green")
 
-data_minus = sorted(itertools.izip(*[x, minus_sig]))
+data_minus = sorted(itertools.izip(*[new_x, minus_sig]))
 minus_x, minus_y = list(itertools.izip(*data_minus))
-x_smooth = np.linspace(min(minus_x), max(minus_x), 200)
-y_smooth = spline(minus_x, minus_y, x_smooth)
-plt.plot(x_smooth, y_smooth, "--", color="green")
-
+plt.plot(minus_x, minus_y, "--", color="green")
+plt.title("D = {}".format(d))
 plt.show()
-data_sig = sorted(itertools.izip(*[x, sig_d]))
+
+
+data_sig = sorted(itertools.izip(*[new_x, sig_d]))
 sig_x, sig_y = list(itertools.izip(*data_sig))
-x_smooth = np.linspace(min(sig_x), max(sig_x), 200)
-y_smooth = spline(sig_x, sig_y, x_smooth)
-plt.plot(x_smooth, y_smooth)
+plt.plot(sig_x, sig_y)
 plt.title("Standard Deviation as a function of x")
 plt.xlabel("x")
 plt.ylabel("Standard Deviation")
