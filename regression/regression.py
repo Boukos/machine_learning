@@ -116,29 +116,33 @@ for D in range(1, num_basis + 1):
 
 
 # Step 5
-#
-# fold = 10
-# avg = np.zeros(20)
-# for i in range(0, 20):
-#     mses = np.zeros(20)
-#     size = 0
-#     for j in range(0, len(x), fold):
-#         training = np.concatenate([x[0:j], x[j+fold : len(x)]])
-#         training_y = np.concatenate([y[0:j], y[j+fold: len(y)]])
-#         validation = x[j:j + fold]
-#         valid_y = y[j:j + fold]
-#         phi = generate_phi(training, 20)
-#         w = generate_w_map(phi, training_y)
-#         y_prime = compute_polynomials(w, validation, i)
-#         mse = 0
-#         for k in range(len(validation)):
-#             mse += (valid_y[k] - y_prime[k])**2
-#         mses[size] = mse/len(y_prime)
-#         size += 1
-#     avg[i] = np.mean(mses)
-# 
-# plt.plot(range(0, 20), avg)
-# plt.show()
+
+fold = 10
+avg = np.zeros(num_basis)
+
+for i in range(1, num_basis + 1):
+    mses = np.zeros(10)
+    for j in range(0, len(x), fold):
+
+        training = np.concatenate([x[0:j], x[j+fold : len(x)]])
+        training_y = np.concatenate([y[0:j], y[j+fold: len(y)]])
+
+        validation = x[j:j + fold]
+        valid_y = y[j:j + fold]
+
+        phi = generate_phi(i, training)
+        w_map = generate_w_map(phi, training_y, i)
+
+        mses[j/fold] = compute_mse(i, w_map, valid_y, validation)
+
+    avg[i-1] = np.mean(mses)
+
+print np.argmin(avg)
+plt.plot(range(0, 20), avg)
+plt.title("Ten Fold Cross Validation Average MSE results")
+plt.xlabel("D")
+plt.ylabel("MSE")
+plt.show()
 
 # Step 6
 
