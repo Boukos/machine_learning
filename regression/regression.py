@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import math
-
+import itertools
 
 # Step 1
 def load_data(input_path, output_path):
@@ -57,21 +56,23 @@ for D in range(1, num_basis + 1):
     w = generate_w_mle(phi, y)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-plt.plot(range(0, 20), mses)
-plt.title("MSE as a Function of D with MLE Estimate")
-plt.xlabel("D")
-plt.ylabel("MSE")
-plt.xlim(0, 21)
-plt.show()
+# plt.plot(range(0, 20), mses)
+# plt.title("MSE as a Function of D with MLE Estimate")
+# plt.xlabel("D")
+# plt.ylabel("MSE")
+# plt.xlim(0, 21)
+# plt.show()
 
 
 # Step 3
 def generate_w_map(phi, y, d):
     lam = 0.001
-    w_inner = (lam * np.identity(d) + np.dot(np.transpose(phi), phi))
-    w_outer = np.dot(np.linalg.inv(w_inner), np.transpose(phi))
-    w_map = np.dot(w_outer, y)
-    return w_map
+    identity = lam * np.identity(d)
+    phi_t = np.dot(np.transpose(phi), phi)
+    inner = np.add(identity, phi_t)
+    outer = np.dot(np.linalg.inv(inner), np.transpose(phi))
+    w = np.dot(outer, y)
+    return w
 
 num_basis = 20
 mses = np.zeros(num_basis)
@@ -80,24 +81,42 @@ for D in range(1, num_basis + 1):
     w = generate_w_map(phi, y, D)
     mses[D - 1] = compute_mse(D, w, y, x)
 
-plt.plot(range(0, 20), mses)
-plt.title("MSE as a Function of D with MAP Estimate")
-plt.xlabel("D")
-plt.ylabel("MSE")
-plt.xlim(0, 21)
-plt.show()
+# plt.plot(range(0, 20), mses)
+# plt.title("MSE as a Function of D with MAP Estimate")
+# plt.xlabel("D")
+# plt.ylabel("MSE")
+# plt.xlim(0, 21)
+# plt.show()
 
 # Step 4
 
-# y_p_10 = compute_polynomials(w, x, 9)
-# y_p_10_map = compute_polynomials(w_map, x, 9)
-# # plt.plot(x, y, 'x')
-# plt.plot(x, y_p_10, color="red")
-# # plt.plot(x, y_p_10_map, color="blue")
-# plt.show()
+
+for D in range(1, num_basis + 1):
+    phi = generate_phi(D, x)
+    w_mle = generate_w_mle(phi, y)
+    w_map = generate_w_map(phi, y, D)
+    pred_y_mle = np.zeros(len(y))
+    pred_y_map = np.zeros(len(y))
+    for i in range(len(y)):
+        pred_y_mle[i] = compute_polynomials(w_mle, x[i], D)
+        pred_y_map[i] = compute_polynomials(w_map, x[i], D)
+
+    data_mle = sorted(itertools.izip(*[x, pred_y_mle]))
+    mle_x, mle_y = list(itertools.izip(*data_mle))
+
+    data_map = sorted(itertools.izip(*[x, pred_y_map]))
+    map_x, map_y = list(itertools.izip(*data_map))
+
+    # plt.plot(x, y, "x", label="Data", color="green")
+    # plt.plot(mle_x, mle_y, "-", label="MLE", color="red")
+    # plt.plot(map_x, map_y, "-", label="MAP", color="blue")
+    # plt.title("D = {}".format(D))
+    # plt.legend()
+    # plt.show()
+
 
 # Step 5
-
+#
 # fold = 10
 # avg = np.zeros(20)
 # for i in range(0, 20):
@@ -117,7 +136,7 @@ plt.show()
 #         mses[size] = mse/len(y_prime)
 #         size += 1
 #     avg[i] = np.mean(mses)
-
+# 
 # plt.plot(range(0, 20), avg)
 # plt.show()
 
@@ -127,12 +146,15 @@ x, y = load_data("dataset2_inputs.txt", "dataset2_outputs.txt")
 # plt.plot(x, y, "x", color="green")
 # plt.show()
 
-tau = 1000
-sigma = 1.5
-d = 13
-phi = generate_phi(x, d)
-inv = (tau**2 * np.identity(d) + sigma**(-2)* np.dot(np.transpose(phi), phi))
-cov_w = np.linalg.inv(inv)
+
+# Step 7
+
+# tau = 1000
+# sigma = 1.5
+# d = 13
+# phi = generate_phi(x, d)
+# inv = (tau**2 * np.identity(d) + sigma**(-2)* np.dot(np.transpose(phi), phi))
+# cov_w = np.linalg.inv(inv)
 # mu_w = sigma**(-2) * np.dot(np.dot(cov_w, np.transpose(phi)), y)
 # mu_d = np.dot(np.transpose(mu_w), phi[d])
 # # sigma_d = sigma**2 + np.dot(np.dot(np.transpose(x), cov_w), x)
