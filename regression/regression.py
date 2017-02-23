@@ -133,16 +133,16 @@ avg = np.zeros(num_basis)
 
 for i in range(1, num_basis + 1):
     mses = np.zeros(10)
-    for j in range(0, len(x), fold):
-        xy = np.random.permutation(zip(x, y))
-        x = xy[:, 0]
-        y = xy[:, 1]
+    xy = np.random.permutation(zip(x, y))
+    new_x = xy[:, 0]
+    new_y = xy[:, 1]
+    for j in range(0, len(new_x), fold):
 
-        training = np.concatenate([x[0:j], x[j+fold : len(x)]])
-        training_y = np.concatenate([y[0:j], y[j+fold: len(y)]])
+        training = np.concatenate([new_x[0:j], new_x[j+fold : len(new_x)]])
+        training_y = np.concatenate([new_y[0:j], new_y[j+fold: len(new_y)]])
 
-        validation = x[j:j + fold]
-        valid_y = y[j:j + fold]
+        validation = new_x[j:j + fold]
+        valid_y = new_y[j:j + fold]
 
         phi = generate_phi(i, training)
         w_map = generate_w_map(phi, training_y, i)
@@ -152,7 +152,7 @@ for i in range(1, num_basis + 1):
     avg[i-1] = np.mean(mses)
 
 print np.argmin(avg)
-plt.plot(range(0, 20), avg)
+plt.plot(range(0, 21), np.concatenate(([None], avg)))
 plt.title("Ten Fold Cross Validation Average MSE results")
 plt.xlabel("D")
 plt.ylabel("MSE")
