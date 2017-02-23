@@ -77,6 +77,7 @@ def generate_w_map(phi, y, d):
     w = np.dot(outer, y)
     return w
 
+mses_mle = mses
 num_basis = 20
 mses = np.zeros(num_basis)
 for D in range(1, num_basis + 1):
@@ -86,8 +87,10 @@ for D in range(1, num_basis + 1):
 
 print mses
 print np.argmin(mses) + 1
-plt.plot(range(0, 21), np.concatenate(([None], mses)))
-plt.title("MSE as a Function of D with MAP Estimate")
+plt.plot(range(0, 21), np.concatenate(([None], mses)), label="MAP", color="blue")
+plt.plot(range(0, 21), np.concatenate(([None], mses_mle)), label="MLE", color="red")
+plt.legend()
+plt.title("MSE as a Function of D with MAP and MLE Estimate")
 plt.xlabel("D")
 plt.ylabel("MSE")
 plt.xlim(0, 21)
@@ -187,9 +190,9 @@ for i in range(len(new_x)):
     phi_x = [poly(D, new_x[i]) for D in range(1, d + 1)]
 
     mu_d[i] = np.dot(np.transpose(mu_w), phi_x)
-    sig_d[i] = sigma**2 + np.dot(np.dot(np.transpose(phi_x), cov_w), phi_x)
-    plus_sig[i] = mu_d[i] + np.sqrt(sig_d[i])
-    minus_sig[i] = mu_d[i] - np.sqrt(sig_d[i])
+    sig_d[i] = np.sqrt(sigma**2 + np.dot(np.dot(np.transpose(phi_x), cov_w), phi_x))
+    plus_sig[i] = mu_d[i] + sig_d[i]
+    minus_sig[i] = mu_d[i] - sig_d[i]
 
 plt.plot(x, y, "x", color="green")
 
